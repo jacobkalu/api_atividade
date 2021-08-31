@@ -1,16 +1,42 @@
 # Importando as libs necessárias
 from flask import Flask, request
 from flask_restful import Resource, Api
-from models import Pessoas, Atividades
+from models import Pessoas, Atividades, Usuarios
+from flask_httpauth import HTTPBasicAuth
 
 # nomeando os apps
+auth = HTTPBasicAuth()
 app = Flask(__name__)
 api = Api(app)
 
+"""
+# Criando os usuários e seus respectivos logins
+USUARIOS = {
+    'kalu': '321',
+    'Jacob': '122'
+}"""
+
+"""# Decorando a funcao verificadora de senha
+@auth.verify_password
+# Criando o método de verificação
+def verificacao(login, senha):
+    #Verificando se existe login e senha, se houver, login e senha retornará como False
+    if not (login, senha):
+        return False
+    return USUARIOS.get(login) == senha"""
+
+# Decorando a funcao verificadora de senha
+@auth.verify_password
+# Criando o método de verificação
+def verificacao(login, senha):
+    #Verificando se existe login e senha, se houver, login e senha retornará como False
+    if not (login, senha):
+        return False
+    return Usuarios.query.filter_by(login=login, senha=senha).first()
 
 # Recuperando os dados por nome de pesssoas e inserindo num dict (response)
 class Pessoa(Resource):
-
+    @auth.login_required # Para acessar este método é preciso estar logado
     #Definindo o método de recuperação GET
     def get(self, nome):
         pessoa = Pessoas.query.filter_by(nome=nome).first()
@@ -58,6 +84,7 @@ class Pessoa(Resource):
 # Definindo o método de listar todas as pessoas no bd
 class ListaPessoas(Resource):
 
+    @auth.login_required  # Para acessar este método é preciso estar logado
     # Definindo o método de recuperação GET
     def get(self):
         pessoas = Pessoas.query.all()
